@@ -5,6 +5,7 @@ import os
 import json
 from openai import OpenAI
 from pydantic import BaseModel
+from search_prompt import search_prompt
 
 class OpenAIConfig(BaseModel):
     """OpenAI configuration settings."""
@@ -141,35 +142,6 @@ class OpenAIService:
         )
         return response.model_dump()
 
-    def create_web_search_response(
-        self,
-        input_text: str,
-        temperature: Optional[float] = None,
-    ) -> Dict[str, Any]:
-        """Create a response using web search.
-        
-        Args:
-            input_text: The input text to search for.
-            temperature: Optional override for temperature.
-            
-        Returns:
-            The response from the model.
-        """
-        print("\n🔄 Starting web search response")
-        print(f"📝 Input: {input_text}")
-        
-        # Use chat.completions instead of responses.create
-        messages = [
-            {"role": "system", "content": "You are a helpful assistant that searches the web for current information."},
-            {"role": "user", "content": input_text}
-        ]
-        
-        response = self.client.chat.completions.create(
-            model=self.config.model,
-            messages=messages,
-            temperature=temperature or self.config.temperature,
-        )
-        return response.model_dump()
 
     def create_chat_completion_with_tools(
         self,
@@ -234,3 +206,30 @@ class OpenAIService:
                 
         print("❌ Maximum iterations exceeded\n")
         raise RuntimeError(f"Maximum number of iterations ({max_iterations}) exceeded")
+
+    def create_web_search_response(
+        self,
+        input_text: str,
+        temperature: Optional[float] = None,
+    ) -> Dict[str, Any]:
+        """Create a response using web search.
+        
+        Args:
+            input_text: The input text to search for.
+            temperature: Optional override for temperature.
+            
+        Returns:
+            The response from the model.
+        """
+        print("\n🔄 Starting web search response")
+        print(f"📝 Input: {input_text}")
+
+        
+        response = self.client.responses.create(
+            model="gpt-4.1-mini",
+            tools=[{"type": "web_search_preview"}],
+            include=["web_search_call.results"],
+            input=f"{search_prompt}{input_text}",
+            temperature=temperature or self.config.temperature,
+        )
+        return response.model_dump()

@@ -8,6 +8,7 @@ import logging
 from app.services import Agent
 from app.services.tool import Tool
 from app.services.openai_service import OpenAIService
+from system_prompt import system_prompt
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -19,7 +20,18 @@ def web_search_tool(query: str) -> str:
     """Tool function that performs a web search using OpenAI's web search capabilities."""
     service = OpenAIService()
     response = service.create_web_search_response(input_text=query)
-    return response["choices"][0]["message"]["content"]
+    print(response)
+
+    # Extract web search results if available
+    web_search_results = response.get("web_search_call", {}).get("results", [])
+    if web_search_results:
+        results_text = "\n\nWeb Search Results:\n"
+        for result in web_search_results:
+            results_text += f"- {result.get('title', '')}: {result.get('snippet', '')}\n"
+        return results_text
+    
+    # Fallback to output text if no specific results
+    return response.get("output_text", "")
 
 # Define the browsing tool
 browsing_tool = Tool(
@@ -39,13 +51,13 @@ browsing_tool = Tool(
     }
 )
 
+
+
 # Initialize the browsing agent
 browsing_agent = Agent(
     model="gpt-4.1",
     tools=[browsing_tool],
-    system_message="""You are a helpful assistant that can search the web for current information.
-    When asked about current events or recent information, use the web search tool to find up-to-date information.
-    Always cite your sources when providing information from the web."""
+    system_message=system_prompt
 )
 
 class ChatRequest(BaseModel):
