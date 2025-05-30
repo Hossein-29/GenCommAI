@@ -9,8 +9,12 @@ from app.services import Agent
 from app.services.tool import Tool
 from app.services.openai_service import OpenAIService
 from system_prompt import system_prompt
+<<<<<<< Updated upstream
 from app.TopicAgent.ProductTopic import ProductClassifierAgent
 import json
+=======
+from app.services.search_youtube_videos import search_and_summarize_youtube_videos
+>>>>>>> Stashed changes
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -50,6 +54,23 @@ browsing_tool = Tool(
             }
         },
         "required": ["query"]
+    }
+)
+
+youtube_video_summary_tool = Tool(
+    type="function",
+    name="youtube_video_summary_tool",
+    description="search the query in youtube and return summary of the related videos as list of text.",
+    function=search_and_summarize_youtube_videos
+    parameters={
+        "type": "object",
+        "properties": {
+            "query_text": {
+                "type": "string",
+                "description": "The search query to look up on the youtube"
+            }
+        },
+        "required": ["query_text"]
     }
 )
 

@@ -2,7 +2,7 @@
 name = "gencommai"
 version = "0.1.0"
 description = "A FastAPI-based project"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
     "fastapi>=0.104.0",
     "uvicorn>=0.24.0",
@@ -10,6 +10,7 @@ dependencies = [
     "pydantic>=2.4.2",
     "pydantic-settings>=2.0.3",
     "openai>=1.3.0",
+<<<<<<< Updated upstream
     "ag2",
 ]
 
@@ -30,3 +31,9 @@ quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto" 
+=======
+    "google-api-python-client>=2.170.0",
+    "google-generativeai>=0.8.5",
+    "youtube-transcript-api>=1.0.3",
+]
+>>>>>>> Stashed changes
