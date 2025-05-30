@@ -1,8 +1,8 @@
 from openai import OpenAI
 from pydantic import BaseModel
 import os
-from youtube_search import search_in_youtube_by_query_text
-from youtube_link_summarizer import get_youtube_video_summary
+from .youtube_search import search_in_youtube_by_query_text
+from .youtube_link_summarizer import get_youtube_video_summary
 
 def search_and_summarize_youtube_videos(query_text):
     video_urls = search_in_youtube_by_query_text(query_text)

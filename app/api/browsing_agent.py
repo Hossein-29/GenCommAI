@@ -9,12 +9,9 @@ from app.services import Agent
 from app.services.tool import Tool
 from app.services.openai_service import OpenAIService
 from system_prompt import system_prompt
-<<<<<<< Updated upstream
 from app.TopicAgent.ProductTopic import ProductClassifierAgent
 import json
-=======
 from app.services.search_youtube_videos import search_and_summarize_youtube_videos
->>>>>>> Stashed changes
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -61,7 +58,7 @@ youtube_video_summary_tool = Tool(
     type="function",
     name="youtube_video_summary_tool",
     description="search the query in youtube and return summary of the related videos as list of text.",
-    function=search_and_summarize_youtube_videos
+    function=search_and_summarize_youtube_videos,
     parameters={
         "type": "object",
         "properties": {
@@ -79,7 +76,7 @@ youtube_video_summary_tool = Tool(
 # Initialize the browsing agent
 browsing_agent = Agent(
     model="gpt-4.1",
-    tools=[browsing_tool],
+    tools=[browsing_tool, youtube_video_summary_tool],
     system_message=system_prompt
 )
 
