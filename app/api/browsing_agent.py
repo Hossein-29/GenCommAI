@@ -11,7 +11,11 @@ from app.services.openai_service import OpenAIService
 from system_prompt import system_prompt
 from app.TopicAgent.ProductTopic import ProductClassifierAgent
 import json
+<<<<<<< HEAD
 from app.services.search_youtube_videos import search_and_summarize_youtube_videos
+=======
+from moro.agents import SummarizeAgent
+>>>>>>> 28856ac (change_minor)
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -114,6 +118,47 @@ async def chat(request: ChatRequest):
         # response = SummarizeAgent(response).run()
         json_response = json.loads(response)
         print(json_response)
+        return json_response
+        
+    except Exception as e:
+        error_traceback = traceback.format_exc()
+        logger.error(f"Error in chat endpoint: {str(e)}\n{error_traceback}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": str(e),
+                "traceback": error_traceback
+            }
+        )
+
+
+
+@router.post("/chat2")
+async def chat(request: ChatRequest):
+    """Chat with the browsing agent.
+    
+    Args:
+        request: The chat request containing the message and optional parameters.
+        
+    Returns:
+        The agent's response as JSON.
+        
+    Raises:
+        HTTPException: If there's an error processing the request.
+    """
+    product_name_normalizer = ProductClassifierAgent()
+    brand_model = product_name_normalizer.run(request.message)  
+    print(brand_model)
+    # brand_model = agent.run("ایسوس ویوو بوک ۱۵ ")
+    # print(brand_model)
+    try:
+        logger.info(f"Received chat request: {brand_model}")
+        response = browsing_agent.chat(
+            message=brand_model,
+            temperature=request.temperature,
+            max_tokens=request.max_tokens,
+        )
+        json_response = SummarizeAgent(response).run()
         return json_response
         
     except Exception as e:

@@ -50,12 +50,20 @@
         .btn-secondary:hover {
             background-color: #3a75e6;
         }
-        /* Styles for chart containers are kept but might not be used if charts are removed */
         .chart-container {
             position: relative;
-            height: 250px; 
+            height: 250px; /* Fixed height for charts */
             width: 100%;
             margin-bottom: 20px;
+        }
+        .center-percentage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
         }
         /* Styles for file input button (not used in this version, but kept for reference) */
         input[type="file"]::-webkit-file-upload-button {
@@ -91,14 +99,8 @@
             
             <div class="w-full">
                 <label for="productName" class="block text-gray-700 text-lg font-medium mb-2">نام محصول یا موضوع:</label>
-                <input type="text" id="productName" placeholder="مثال: هدفون سونی WH-1000XM5" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="text" id="productName" placeholder="مثال: هدفون سونی WH-1000XM6" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
-
-            <!-- <div class="w-full flex items-center justify-center space-x-4 space-x-reverse">
-                <span class="text-gray-600">یا</span>
-                <label for="productImage" class="block text-gray-700 text-lg font-medium">تصویر محصول:</label>
-                <input type="file" id="productImage" accept="image/*" class="w-full p-3 border border-gray-300 rounded-md">
-            </div> -->
             
             <button id="analyzeButton" class="btn-primary w-full max-w-xs">تحلیل کن</button>
         </div>
@@ -106,15 +108,22 @@
         <div id="displayPage" class="hidden flex flex-col space-y-6">
             <h1 id="displayTitle" class="text-3xl font-bold text-gray-800 text-center"></h1>
             
-            <!-- <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-gray-50 p-4 rounded-lg shadow-inner flex flex-col items-center">
                     <h2 class="text-xl font-semibold text-gray-700 mb-4">رضایت کاربران</h2>
                     <div class="chart-container">
                         <canvas id="likesDislikesChart"></canvas>
                     </div>
-                    <p class="text-sm text-gray-600">نمودار لایک و دیسلایک</p>
+                    <p class="text-sm text-gray-600">نمودار رضایت کلی</p>
                 </div>
 
+                <div class="bg-gray-50 p-4 rounded-lg shadow-inner flex flex-col items-center justify-center">
+                    <h2 class="text-xl font-semibold text-gray-700 mb-4">نظر اصلی</h2>
+                    <p id="overallScoreText" class="text-2xl text-gray-900"></p>
+                </div>
+
+                <!-- Bar chart is commented out as it's not in the new JSON format.
+                     If you need it back, uncomment this section and its JS logic.
                 <div class="bg-gray-50 p-4 rounded-lg shadow-inner flex flex-col items-center">
                     <h2 class="text-xl font-semibold text-gray-700 mb-4">درصد رضایت فروشگاه‌ها</h2>
                     <div class="chart-container">
@@ -122,20 +131,16 @@
                     </div>
                     <p class="text-sm text-gray-600">نمودار میله‌ای رضایت</p>
                 </div>
-            </div> -->
-
-            <div class="bg-gray-50 p-4 rounded-lg shadow-inner">
-                <h2 class="text-xl font-semibold text-gray-700 mb-4">خلاصه</h2>
-                <p id="summaryText" class="text-gray-700 leading-relaxed"></p>
+                -->
             </div>
 
             <div class="bg-gray-50 p-4 rounded-lg shadow-inner">
-                <h2 class="text-xl font-semibold text-gray-700 mb-4">بررسی</h2>
-                <p id="reviewText" class="text-gray-700 leading-relaxed"></p>
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">بررسی و خلاصه</h2>
+                <p id="reviewSummaryText" class="text-gray-700 leading-relaxed"></p>
             </div>
 
             <div class="bg-gray-50 p-4 rounded-lg shadow-inner">
-                <h2 class="text-xl font-semibold text-gray-700 mb-4">ارزیابی</h2>
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">نکات و ارزیابی</h2>
                 <p id="evaluationText" class="text-gray-700 leading-relaxed"></p>
             </div>
 
@@ -144,8 +149,8 @@
     </div>
 
     <script>
-        // آدرس بک‌اند Flask شما
-        const API_URL = 'http://localhost:8000/agent/chat';
+        // آدرس بک‌اند شما
+        const API_URL = 'http://localhost:8000/agent/chat2'; // Endpoint جدید
 
         // Get elements
         const inputPage = document.getElementById('inputPage');
@@ -155,19 +160,121 @@
         const backButton = document.getElementById('backButton');
         const displayTitle = document.getElementById('displayTitle');
         
-        // عناصر جدید برای نمایش پاسخ بک‌اند
-        const summaryText = document.getElementById('summaryText');
-        const reviewText = document.getElementById('reviewText');
-        const evaluationText = document.getElementById('evaluationText');
+        // عناصر نمایش پاسخ بک‌اند
+        const reviewSummaryText = document.getElementById('reviewSummaryText'); // جدید برای Review
+        const evaluationText = document.getElementById('evaluationText'); // برای Tips
+        const overallScoreText = document.getElementById('overallScoreText'); // جدید برای Overall score
+
+        let likesDislikesChartInstance = null; 
+        // let satisfactionChartInstance = null; // Bar chart is still commented out
+
+        // Plugin to display text in the center of the doughnut chart
+        const centerTextPlugin = {
+            id: 'centerText',
+            beforeDraw: function(chart) {
+                if (chart.config.options.elements && chart.config.options.elements.center) {
+                    const ctx = chart.ctx;
+                    const centerConfig = chart.config.options.elements.center;
+                    const fontStyle = centerConfig.fontStyle || 'Inter';
+                    const txt = centerConfig.text;
+                    const color = centerConfig.color || '#000';
+                    
+                    ctx.font = "bold " + centerConfig.fontSize + "px " + fontStyle;
+                    ctx.fillStyle = color;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+
+                    const centerX = ((chart.chartArea.left + chart.chartArea.right) / 2);
+                    const centerY = ((chart.chartArea.top + chart.chartArea.bottom) / 2);
+
+                    ctx.fillText(txt, centerX, centerY);
+                }
+            }
+        };
+
+        // Register the plugin globally
+        Chart.register(centerTextPlugin);
 
         // Function to render analysis data
         function renderAnalysis(data, title) {
+            // Log the received data to console for debugging
+            console.log("Received data from backend:", data);
+
             displayTitle.textContent = title;
             
-            // Populate new text fields
-            summaryText.textContent = data.summary || 'خلاصه موجود نیست.';
-            reviewText.textContent = data.review || 'بررسی موجود نیست.';
-            evaluationText.textContent = data.evaluation || 'ارزیابی موجود نیست.';
+            // Populate new text fields based on the new JSON structure
+            reviewSummaryText.textContent = data.Review || 'بررسی و خلاصه موجود نیست.';
+            evaluationText.textContent = data.Tips || 'نکات و ارزیابی موجود نیست.';
+            // Ensure correct access for 'Overall score' which has a space
+            overallScoreText.textContent = data['Overall score'] || 'نامشخص'; 
+
+            // Destroy existing chart instance if it exists
+            if (likesDislikesChartInstance) {
+                likesDislikesChartInstance.destroy();
+            }
+            // if (satisfactionChartInstance) { satisfactionChartInstance.destroy(); } // Bar chart instance
+
+            // Pie Chart for User Satisfaction
+            const likesDislikesCtx = document.getElementById('likesDislikesChart').getContext('2d');
+            // Extract user satisfaction from Scores object, convert to number
+            // Ensure 'user satisfaction' is accessed correctly and parsed to a float, then multiplied by 10
+            const userSatisfaction = data.Scores && data.Scores['user satisfaction'] ? parseFloat(data.Scores['user satisfaction']) * 10 : 0; 
+            const dissatisfactionRate = 100 - userSatisfaction;
+
+            likesDislikesChartInstance = new Chart(likesDislikesCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['رضایت کاربران', 'عدم رضایت'],
+                    datasets: [{
+                        data: [userSatisfaction, dissatisfactionRate],
+                        backgroundColor: [
+                            '#d73948', // Red for satisfaction
+                            '#ffffff'  // White for dissatisfaction
+                        ],
+                        borderColor: [
+                            '#d73948',
+                            '#cccccc'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%', // Make it a doughnut chart
+                    elements: {
+                        center: {
+                            text: userSatisfaction + '%', // Display user satisfaction percentage in center
+                            color: '#333',
+                            fontStyle: 'Inter',
+                            fontSize: 24,
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: {
+                                    family: 'Inter',
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) { label += ': '; }
+                                    if (context.parsed !== null) { label += context.parsed + '%'; }
+                                    return label;
+                                }
+                            },
+                            titleFont: { family: 'Inter' },
+                            bodyFont: { family: 'Inter' }
+                        }
+                    }
+                }
+            });
+            likesDislikesChartInstance.update(); // Force update after creation
 
             inputPage.classList.add('hidden');
             displayPage.classList.remove('hidden');
@@ -179,13 +286,12 @@
             let options = {};
             let titleForDisplay = "";
 
-            // همیشه درخواست POST با فرمت JSON ارسال می‌شود
             options = {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ message: productName }) // فرمت جدید درخواست
+                body: JSON.stringify({ message: productName })
             };
             titleForDisplay = `تحلیل: ${productName}`;
             
@@ -196,6 +302,13 @@
                     throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.message || response.statusText}`);
                 }
                 const data = await response.json();
+                
+                // در اینجا، داده‌های دریافتی از بک‌اند را مستقیماً استفاده می‌کنیم.
+                // اگر بک‌اند شما 'user satisfaction' را به صورت رشته برمی‌گرداند،
+                // مطمئن شوید که قبل از استفاده در نمودار آن را به عدد تبدیل کنید.
+                // در این مثال، فرض شده که 'user satisfaction' در 'Scores' به صورت رشته است
+                // و ما آن را در renderAnalysis به عدد تبدیل می‌کنیم.
+
                 return {data: data, title: titleForDisplay};
             } catch (error) {
                 console.error('Error fetching analysis data:', error);
