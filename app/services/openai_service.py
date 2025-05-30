@@ -5,6 +5,7 @@ import os
 import json
 from openai import OpenAI
 from pydantic import BaseModel
+from search_prompt import search_prompt
 
 class OpenAIConfig(BaseModel):
     """OpenAI configuration settings."""
@@ -141,6 +142,7 @@ class OpenAIService:
         )
         return response.model_dump()
 
+
     def create_chat_completion_with_tools(
         self,
         messages: list[Dict[str, str]],
@@ -148,59 +150,86 @@ class OpenAIService:
         max_tokens: Optional[int] = None,
         max_iterations: int = 5,
     ) -> Dict[str, Any]:
-        """Create a chat completion with tools support and handle tool execution.
-        
-        Args:
-            messages: List of message dictionaries with 'role' and 'content'.
-            temperature: Optional override for temperature.
-            max_tokens: Optional override for max tokens.
-            max_iterations: Maximum number of tool call iterations to prevent infinite loops.
-            
-        Returns:
-            The final chat completion response after handling all tool calls.
-        """
+        """Create a chat completion with tools support and handle tool execution."""
         if not self.tool_definitions:
             raise ValueError("No functions registered. Use register_function() first.")
             
         print("\n🔄 Starting conversation with tools")
-        print(f"📋 Available tools: {[tool['function']['name'] for tool in self.tool_definitions]}")
+        print(f"📋 Available tools: {[tool for tool in self.tool_definitions]}")
         
         current_messages = messages.copy()
         iterations = 0
         
         while iterations < max_iterations:
-            print(f"\n📝 Iteration {iterations + 1}/{max_iterations}")
-            
-            response = self.client.chat.completions.create(
-                model=self.config.model,
-                messages=current_messages,
-                tools=self.tool_definitions,
-                tool_choice="auto",
-                temperature=temperature or self.config.temperature,
-                max_tokens=max_tokens or self.config.max_tokens,
-            )
-            response_dict = response.model_dump()
-            
-            # Get the assistant's message
-            assistant_message = response_dict["choices"][0]["message"]
-            print(f"💭 Assistant: {assistant_message.get('content', '')}")
-            
-            current_messages.append(assistant_message)
-            
-            # If there are no tool calls, we're done
-            if not assistant_message.get("tool_calls"):
-                print("✨ Conversation complete\n")
-                return response_dict
+            try:
+                print(f"\n📝 Iteration {iterations + 1}/{max_iterations}")
                 
-            # Execute all tool calls
-            tool_calls = assistant_message.get("tool_calls", [])
-            print(f"🔧 Executing {len(tool_calls)} tool calls")
-            
-            for tool_call in tool_calls:
-                tool_result = self._execute_tool_call(tool_call)
-                current_messages.append(tool_result)
+                response = self.client.chat.completions.create(
+                    model=self.config.model,
+                    messages=current_messages,
+                    tools=self.tool_definitions,
+                    tool_choice="auto",
+                    temperature=temperature or self.config.temperature,
+                    max_tokens=max_tokens or self.config.max_tokens,
+                )
+                response_dict = response.model_dump()
                 
-            iterations += 1
-            
+                # Get the assistant's message
+                assistant_message = response_dict["choices"][0]["message"]
+                print(f"💭 Assistant: {assistant_message.get('content', '')}")
+                
+                current_messages.append(assistant_message)
+                
+                # If there are no tool calls, we're done
+                if not assistant_message.get("tool_calls"):
+                    print("✨ Conversation complete\n")
+                    return response_dict
+                    
+                # Execute all tool calls
+                tool_calls = assistant_message.get("tool_calls", [])
+                print(f"🔧 Executing {len(tool_calls)} tool calls")
+                
+                for tool_call in tool_calls:
+                    # Handle function tools
+                    tool_result = self._execute_tool_call(tool_call)
+                    current_messages.append(tool_result)
+                    
+                iterations += 1
+                
+            except Exception as e:
+                print(f"\n❌ Error in iteration {iterations + 1}:")
+                print(f"Error type: {type(e).__name__}")
+                print(f"Error message: {str(e)}")
+                import traceback
+                print(f"Traceback:\n{traceback.format_exc()}")
+                raise
+                
         print("❌ Maximum iterations exceeded\n")
         raise RuntimeError(f"Maximum number of iterations ({max_iterations}) exceeded")
+
+    def create_web_search_response(
+        self,
+        input_text: str,
+        temperature: Optional[float] = None,
+    ) -> Dict[str, Any]:
+        """Create a response using web search.
+        
+        Args:
+            input_text: The input text to search for.
+            temperature: Optional override for temperature.
+            
+        Returns:
+            The response from the model.
+        """
+        print("\n🔄 Starting web search response")
+        print(f"📝 Input: {input_text}")
+
+        
+        response = self.client.responses.create(
+            model="gpt-4.1-mini",
+            tools=[{"type": "web_search_preview"}],
+            include=["web_search_call.results"],
+            input=f"{search_prompt}{input_text}",
+            temperature=temperature or self.config.temperature,
+        )
+        return response.model_dump()
