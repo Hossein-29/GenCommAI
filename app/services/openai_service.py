@@ -171,6 +171,7 @@ class OpenAIService:
                     tool_choice="auto",
                     temperature=temperature or self.config.temperature,
                     max_tokens=max_tokens or self.config.max_tokens,
+                    response_format={"type": "json_object"},
                 )
                 response_dict = response.model_dump()
                 

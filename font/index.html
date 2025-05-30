@@ -50,22 +50,14 @@
         .btn-secondary:hover {
             background-color: #3a75e6;
         }
+        /* Styles for chart containers are kept but might not be used if charts are removed */
         .chart-container {
             position: relative;
-            height: 250px; /* Fixed height for charts */
+            height: 250px; 
             width: 100%;
             margin-bottom: 20px;
         }
-        .center-percentage {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 2rem;
-            font-weight: bold;
-            color: #333;
-        }
-        /* Hide scrollbar for input type file */
+        /* Styles for file input button (not used in this version, but kept for reference) */
         input[type="file"]::-webkit-file-upload-button {
             visibility: hidden;
         }
@@ -102,11 +94,11 @@
                 <input type="text" id="productName" placeholder="مثال: هدفون سونی WH-1000XM5" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
-            <div class="w-full flex items-center justify-center space-x-4 space-x-reverse">
+            <!-- <div class="w-full flex items-center justify-center space-x-4 space-x-reverse">
                 <span class="text-gray-600">یا</span>
                 <label for="productImage" class="block text-gray-700 text-lg font-medium">تصویر محصول:</label>
                 <input type="file" id="productImage" accept="image/*" class="w-full p-3 border border-gray-300 rounded-md">
-            </div>
+            </div> -->
             
             <button id="analyzeButton" class="btn-primary w-full max-w-xs">تحلیل کن</button>
         </div>
@@ -114,7 +106,7 @@
         <div id="displayPage" class="hidden flex flex-col space-y-6">
             <h1 id="displayTitle" class="text-3xl font-bold text-gray-800 text-center"></h1>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-gray-50 p-4 rounded-lg shadow-inner flex flex-col items-center">
                     <h2 class="text-xl font-semibold text-gray-700 mb-4">رضایت کاربران</h2>
                     <div class="chart-container">
@@ -130,11 +122,21 @@
                     </div>
                     <p class="text-sm text-gray-600">نمودار میله‌ای رضایت</p>
                 </div>
+            </div> -->
+
+            <div class="bg-gray-50 p-4 rounded-lg shadow-inner">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">خلاصه</h2>
+                <p id="summaryText" class="text-gray-700 leading-relaxed"></p>
             </div>
 
             <div class="bg-gray-50 p-4 rounded-lg shadow-inner">
-                <h2 class="text-xl font-semibold text-gray-700 mb-4">خلاصه نظرات</h2>
-                <p id="commentsText" class="text-gray-700 leading-relaxed"></p>
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">بررسی</h2>
+                <p id="reviewText" class="text-gray-700 leading-relaxed"></p>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg shadow-inner">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">ارزیابی</h2>
+                <p id="evaluationText" class="text-gray-700 leading-relaxed"></p>
             </div>
 
             <button id="backButton" class="btn-secondary w-full max-w-xs self-center">بازگشت</button>
@@ -142,246 +144,95 @@
     </div>
 
     <script>
-        // Mock data based on the hypothetical JSON structure
-        const mockProductData = {
-            "هدفون سونی WH-1000XM5": {
-                "Likes_Dislikes": {
-                    "likes": 85,
-                    "dislikes": 15
-                },
-                "Satisfaction_percentage": [
-                    {"store": "دیجیپل", "satisfaction": 90},
-                    {"store": "هایتل", "satisfaction": 75},
-                    {"store": "لیون کامپیوتر", "satisfaction": 88},
-                    {"store": "ایران رهجو", "satisfaction": 95}
-                ],
-                "Text": "این هدفون بی‌سیم سونی مدل WH-1000XM5، از نظر کاربران یکی از بهترین انتخاب‌ها برای تجربه صوتی بی‌نظیر است. بسیاری از خریداران از کیفیت حذف نویز فعال آن شگفت‌زده شده‌اند و آن را برای محیط‌های شلوغ مانند پرواز و مترو بسیار مناسب می‌دانند. کیفیت صدای این هدفون نیز بسیار مورد تحسین قرار گرفته است، با باس عمیق و جزئیات واضح که تجربه شنیداری لذت‌بخشی را فراهم می‌کند. راحتی استفاده طولانی‌مدت از این هدفون، نکته مثبت دیگری است که در نظرات کاربران به چشم می‌خورد. طراحی سبک و ارگونومیک آن باعث می‌شود که حتی پس از ساعت‌ها استفاده، احساس خستگی نکنید. با این حال، برخی کاربران به قیمت نسبتاً بالای آن اشاره کرده‌اند که می‌تواند یک مانع برای برخی خریداران باشد. در مجموع، این هدفون برای کسانی که به دنبال کیفیت صدای عالی، حذف نویز بی‌نظیر و راحتی فوق‌العاده هستند، توصیه می‌شود."
-            },
-            "موضوع عمومی": {
-                "Likes_Dislikes": {
-                    "likes": 70,
-                    "dislikes": 30
-                },
-                "Satisfaction_percentage": [
-                    {"store": "فروشگاه الف", "satisfaction": 60},
-                    {"store": "فروشگاه ب", "satisfaction": 80},
-                    {"store": "فروشگاه ج", "satisfaction": 70}
-                ],
-                "Text": "این یک خلاصه عمومی از نظرات است. کاربران در مورد این موضوع نظرات متفاوتی داشتند. برخی جنبه‌های مثبت را برجسته کردند، در حالی که برخی دیگر به نقاط ضعف اشاره کردند. در مجموع، بازخوردها نشان‌دهنده طیف وسیعی از تجربیات است."
-            }
-        };
+        // آدرس بک‌اند Flask شما
+        const API_URL = 'http://localhost:8000/agent/chat';
 
         // Get elements
         const inputPage = document.getElementById('inputPage');
         const displayPage = document.getElementById('displayPage');
         const productNameInput = document.getElementById('productName');
-        const productImageInput = document.getElementById('productImage');
         const analyzeButton = document.getElementById('analyzeButton');
         const backButton = document.getElementById('backButton');
         const displayTitle = document.getElementById('displayTitle');
-        const commentsText = document.getElementById('commentsText');
+        
+        // عناصر جدید برای نمایش پاسخ بک‌اند
+        const summaryText = document.getElementById('summaryText');
+        const reviewText = document.getElementById('reviewText');
+        const evaluationText = document.getElementById('evaluationText');
 
-        let likesDislikesChartInstance = null;
-        let satisfactionChartInstance = null;
-
-        // Plugin to display text in the center of the doughnut chart
-        const centerTextPlugin = {
-            id: 'centerText',
-            beforeDraw: function(chart) {
-                if (chart.config.options.elements && chart.config.options.elements.center) { // Added check for elements
-                    const ctx = chart.ctx;
-                    const centerConfig = chart.config.options.elements.center;
-                    const fontStyle = centerConfig.fontStyle || 'Inter';
-                    const txt = centerConfig.text;
-                    const color = centerConfig.color || '#000';
-                    
-                    ctx.font = "bold " + centerConfig.fontSize + "px " + fontStyle;
-                    ctx.fillStyle = color;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-
-                    const centerX = ((chart.chartArea.left + chart.chartArea.right) / 2);
-                    const centerY = ((chart.chartArea.top + chart.chartArea.bottom) / 2);
-
-                    ctx.fillText(txt, centerX, centerY);
-                }
-            }
-        };
-
-        // Register the plugin globally
-        Chart.register(centerTextPlugin);
-
-        // Function to render charts and text
+        // Function to render analysis data
         function renderAnalysis(data, title) {
             displayTitle.textContent = title;
-            commentsText.textContent = data.Text;
-
-            // Destroy existing chart instances if they exist
-            if (likesDislikesChartInstance) {
-                likesDislikesChartInstance.destroy();
-            }
-            if (satisfactionChartInstance) {
-                satisfactionChartInstance.destroy();
-            }
-
-            // Pie Chart for Likes/Dislikes
-            const likesDislikesCtx = document.getElementById('likesDislikesChart').getContext('2d');
-            const totalVotes = data.Likes_Dislikes.likes + data.Likes_Dislikes.dislikes;
-            const satisfactionPercentage = totalVotes > 0 ? ((data.Likes_Dislikes.likes / totalVotes) * 100).toFixed(0) : 0;
-
-            likesDislikesChartInstance = new Chart(likesDislikesCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['لایک', 'دیسلایک'],
-                    datasets: [{
-                        data: [data.Likes_Dislikes.likes, data.Likes_Dislikes.dislikes],
-                        backgroundColor: [
-                            '#d73948', // Red for likes
-                            '#ffffff'  // White for dislikes
-                        ],
-                        borderColor: [
-                            '#d73948',
-                            '#cccccc'
-                        ],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '70%', // Make it a doughnut chart
-                    elements: {
-                        center: {
-                            text: satisfactionPercentage + '%',
-                            color: '#333',
-                            fontStyle: 'Inter',
-                            fontSize: 24,
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                font: {
-                                    family: 'Inter',
-                                }
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.label || '';
-                                    if (label) { label += ': '; }
-                                    if (context.parsed !== null) { label += context.parsed + '%'; }
-                                    return label;
-                                }
-                            },
-                            titleFont: { family: 'Inter' },
-                            bodyFont: { family: 'Inter' }
-                        }
-                    }
-                }
-            });
-            likesDislikesChartInstance.update(); // Force update after creation
-
-            // Bar Chart for Satisfaction Percentage
-            const satisfactionCtx = document.getElementById('satisfactionChart').getContext('2d');
-            satisfactionChartInstance = new Chart(satisfactionCtx, {
-                type: 'bar',
-                data: {
-                    labels: data.Satisfaction_percentage.map(item => item.store),
-                    datasets: [{
-                        label: 'درصد رضایت',
-                        data: data.Satisfaction_percentage.map(item => item.satisfaction),
-                        backgroundColor: [
-                            'rgba(52, 104, 204, 0.8)',
-                            'rgba(215, 57, 72, 0.8)',
-                            'rgba(11, 81, 36, 0.8)',
-                            'rgba(255, 202, 50, 0.8)'
-                        ],
-                        borderColor: [
-                            'rgba(52, 104, 204, 1)',
-                            'rgba(215, 57, 72, 1)',
-                            'rgba(11, 81, 36, 1)',
-                            'rgba(255, 202, 50, 1)'
-                        ],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100,
-                            ticks: {
-                                callback: function(value) { return value + '%'; },
-                                font: { family: 'Inter' }
-                            },
-                            grid: { color: '#e6e6e6' }
-                        },
-                        x: {
-                            ticks: { font: { family: 'Inter' } },
-                            grid: { display: false }
-                        }
-                    },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) { label += ': '; }
-                                    if (context.parsed.y !== null) { label += context.parsed.y + '%'; }
-                                    return label;
-                                }
-                            },
-                            titleFont: { family: 'Inter' },
-                            bodyFont: { family: 'Inter' }
-                        }
-                    }
-                }
-            });
-            satisfactionChartInstance.update(); // Force update after creation
+            
+            // Populate new text fields
+            summaryText.textContent = data.summary || 'خلاصه موجود نیست.';
+            reviewText.textContent = data.review || 'بررسی موجود نیست.';
+            evaluationText.textContent = data.evaluation || 'ارزیابی موجود نیست.';
 
             inputPage.classList.add('hidden');
             displayPage.classList.remove('hidden');
         }
 
-        // Event Listeners
-        analyzeButton.addEventListener('click', () => {
+        // تابع برای واکشی داده از بک‌اند
+        async function fetchAnalysisDataFromBackend(productName) {
+            let apiUrl = API_URL;
+            let options = {};
+            let titleForDisplay = "";
+
+            // همیشه درخواست POST با فرمت JSON ارسال می‌شود
+            options = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: productName }) // فرمت جدید درخواست
+            };
+            titleForDisplay = `تحلیل: ${productName}`;
+            
+            try {
+                const response = await fetch(apiUrl, options);
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ message: 'خطای نامشخص از سرور' }));
+                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.message || response.statusText}`);
+                }
+                const data = await response.json();
+                return {data: data, title: titleForDisplay};
+            } catch (error) {
+                console.error('Error fetching analysis data:', error);
+                alert(`خطا در دریافت اطلاعات تحلیل از سرور: ${error.message}. لطفاً مطمئن شوید بک‌اند در حال اجراست و به درستی پاسخ می‌دهد.`);
+                return {data: null, title: ""};
+            }
+        }
+
+        // Event Listener برای دکمه تحلیل کن
+        analyzeButton.addEventListener('click', async () => {
             const productName = productNameInput.value.trim();
-            const productImage = productImageInput.files[0]; // Get the selected file
 
-            let dataToRender = null;
-            let title = "تحلیل محصول/موضوع";
-
-            if (productName === "هدفون سونی WH-1000XM5") {
-                dataToRender = mockProductData["هدفون سونی WH-1000XM5"];
-                title = "تحلیل: هدفون سونی WH-1000XM5";
-            } else if (productName !== "") {
-                // For any other text input, use generic data
-                dataToRender = mockProductData["موضوع عمومی"];
-                title = `تحلیل: ${productName}`;
-            } else if (productImage) {
-                // For image input, use generic data (in a real app, you'd send image to backend)
-                dataToRender = mockProductData["موضوع عمومی"];
-                title = "تحلیل تصویر محصول";
-            } else {
-                alert("لطفاً نام محصول یا موضوع را وارد کنید یا یک تصویر انتخاب نمایید.");
+            if (!productName) {
+                alert("لطفاً نام محصول یا موضوع را وارد کنید.");
                 return;
             }
 
-            renderAnalysis(dataToRender, title);
+            // نمایش لودینگ و غیرفعال کردن دکمه
+            analyzeButton.textContent = 'در حال تحلیل...';
+            analyzeButton.disabled = true;
+
+            // فراخوانی تابع برای واکشی داده از بک‌اند
+            const {data: dataToRender, title: displayTitleText} = await fetchAnalysisDataFromBackend(productName);
+
+            // پنهان کردن لودینگ و فعال کردن دکمه
+            analyzeButton.textContent = 'تحلیل کن';
+            analyzeButton.disabled = false;
+
+            if (dataToRender) {
+                renderAnalysis(dataToRender, displayTitleText);
+            }
         });
 
         backButton.addEventListener('click', () => {
             displayPage.classList.add('hidden');
             inputPage.classList.remove('hidden');
-            // Clear inputs for next search
             productNameInput.value = '';
-            productImageInput.value = ''; // Clear file input
         });
 
         // Initial state: show input page

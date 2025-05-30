@@ -68,19 +68,15 @@ class ChatRequest(BaseModel):
     temperature: Optional[float] = None
     max_tokens: Optional[int] = None
 
-class ChatResponse(BaseModel):
-    """Response model for chat endpoint."""
-    response: str
-
-@router.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest) -> ChatResponse:
+@router.post("/chat")
+async def chat(request: ChatRequest):
     """Chat with the browsing agent.
     
     Args:
         request: The chat request containing the message and optional parameters.
         
     Returns:
-        The agent's response.
+        The agent's response as JSON.
         
     Raises:
         HTTPException: If there's an error processing the request.
@@ -100,8 +96,8 @@ async def chat(request: ChatRequest) -> ChatResponse:
         # response = SummarizeAgent(response).run()
         json_response = json.loads(response)
         print(json_response)
-
-        return ChatResponse(response=response)
+        return json_response
+        
     except Exception as e:
         error_traceback = traceback.format_exc()
         logger.error(f"Error in chat endpoint: {str(e)}\n{error_traceback}")
@@ -120,4 +116,4 @@ async def reset_conversation() -> dict:
         browsing_agent.reset_conversation()
         return {"status": "success", "message": "Conversation history reset"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e)) 
+        raise HTTPException(status_code=500, detail=str(e))
