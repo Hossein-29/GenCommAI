@@ -1,3 +1,5 @@
+"""Main FastAPI application."""
+
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic_settings import BaseSettings
@@ -7,6 +9,7 @@ from dotenv import load_dotenv
 import os
 
 from app.services import OpenAIService
+from app.api import browsing_agent
 
 # Load environment variables
 load_dotenv()
@@ -30,15 +33,15 @@ settings = Settings()
 
 app = FastAPI(
     title="GenCommAI API",
-    description="API for GenCommAI project",
-    version="0.1.0",
+    description="API for GenCommAI agents and services",
+    version="1.0.0",
     debug=settings.debug,
 )
 
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Modify this in production
+    allow_origins=["*"],  # In production, replace with specific origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -49,10 +52,17 @@ def get_openai_service() -> OpenAIService:
     """Get OpenAI service instance."""
     return OpenAIService()  # Will use defaults: gpt-4, temperature=0.0, max_tokens=None
 
+# Include routers
+app.include_router(browsing_agent.router)
+
 @app.get("/")
 async def root():
     """Root endpoint."""
-    return {"message": "Welcome to GenCommAI API"}
+    return {
+        "message": "Welcome to GenCommAI API",
+        "docs_url": "/docs",
+        "redoc_url": "/redoc"
+    }
 
 @app.get("/health")
 async def health_check():
