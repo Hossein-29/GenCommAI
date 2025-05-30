@@ -11,11 +11,8 @@ from app.services.openai_service import OpenAIService
 from system_prompt import system_prompt
 from app.TopicAgent.ProductTopic import ProductClassifierAgent
 import json
-<<<<<<< HEAD
 from app.services.search_youtube_videos import search_and_summarize_youtube_videos
-=======
 from moro.agents import SummarizeAgent
->>>>>>> 28856ac (change_minor)
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -79,7 +76,7 @@ youtube_video_summary_tool = Tool(
 
 # Initialize the browsing agent
 browsing_agent = Agent(
-    model="gpt-4.1",
+    model="gpt-4.1-mini",
     tools=[browsing_tool, youtube_video_summary_tool],
     system_message=system_prompt
 )

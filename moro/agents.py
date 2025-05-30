@@ -64,8 +64,8 @@ class SummarizeAgent(base.Agent):
                 + "Evaluate the product, guide user and suggest the product if it meets the needs."
                 + "you suggest it, give user tips and advices"
                 + "Response with one sentence for reiview, one for advices and one for conclusion that who should buy this product and who should avoid it"
-                + "Response with following instruction 'Review: (...)\nTips:(...)\nOverall score:(use data and estimate overall score (just numbers) of the product)'"
-                + "mention numbers at the end in the list with following format{field(quality user satisfaction features value for money): score}"
+                + "Response with following instruction 'Review: (...)\nTips:(...)\nOverall score:(give me a number between 0 and 5, no other characters)'"
+                + "mention numbers at the end in the list with following format{field(quality user satisfaction features value for money): score(give me a number between 40 to 100 please check and give the insightful score and not zeroß)}"
                 + "Generate the response in Persian, except for the overall score which must be in English."
             )
         
