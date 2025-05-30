@@ -10,6 +10,7 @@ from app.services.tool import Tool
 from app.services.openai_service import OpenAIService
 from system_prompt import system_prompt
 from app.TopicAgent.ProductTopic import ProductClassifierAgent
+import json
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -97,7 +98,9 @@ async def chat(request: ChatRequest) -> ChatResponse:
             max_tokens=request.max_tokens,
         )
         # response = SummarizeAgent(response).run()
-        print(response)
+        json_response = json.loads(response)
+        print(json_response)
+
         return ChatResponse(response=response)
     except Exception as e:
         error_traceback = traceback.format_exc()
