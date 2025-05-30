@@ -9,6 +9,7 @@ from app.services import Agent
 from app.services.tool import Tool
 from app.services.openai_service import OpenAIService
 from system_prompt import system_prompt
+from app.TopicAgent.ProductTopic import ProductClassifierAgent
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -83,13 +84,20 @@ async def chat(request: ChatRequest) -> ChatResponse:
     Raises:
         HTTPException: If there's an error processing the request.
     """
+    product_name_normalizer = ProductClassifierAgent()
+    brand_model = product_name_normalizer.run(request.message)  
+    print(brand_model)
+    # brand_model = agent.run("ایسوس ویوو بوک ۱۵ ")
+    # print(brand_model)
     try:
-        logger.info(f"Received chat request: {request.message}")
+        logger.info(f"Received chat request: {brand_model}")
         response = browsing_agent.chat(
-            message=request.message,
+            message=brand_model,
             temperature=request.temperature,
             max_tokens=request.max_tokens,
         )
+        # response = SummarizeAgent(response).run()
+        print(response)
         return ChatResponse(response=response)
     except Exception as e:
         error_traceback = traceback.format_exc()
